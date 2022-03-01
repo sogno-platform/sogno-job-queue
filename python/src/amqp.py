@@ -12,7 +12,7 @@ from my_retry import retry
 from context import DoOnce
 
 logger = logging.getLogger()
-logger.setLevel("DEBUG")
+logger.setLevel("ERROR")
 logging.basicConfig(
         format="%(asctime)s: [%(filename)s:%(lineno)d] %(levelname)s: %(message)s",
     )
@@ -130,7 +130,7 @@ class AmqpConnector:
             # do not overwrite channel if it can not connect because it already is connected
             if amqp_channel is not None:
                 self._amqp_channel = amqp_channel
-                self._amqp_channel.set_qos(prefetch_count=1)
+                await self._amqp_channel.set_qos(prefetch_count=1)
             else:
                 raise ConnectionError(
                     f"could not open a channel to broker for {str(self)}."
@@ -305,7 +305,7 @@ class AmqpListener(AmqpConnector):
             msg = await queue.get(fail=False)
         return msg
 
-    def add_message_processor(self, callback: Callable):
+    def add_message_processor(self, callback: Callable[[str],Any]):
         """Add a callback function that is executed every time a message is recieved."""
         if asyncio.iscoroutine(callable):
             async def on_message_recieved(msg):
