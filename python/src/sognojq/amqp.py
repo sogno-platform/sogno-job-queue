@@ -14,14 +14,13 @@ from sognojq.context import DoOnce
 logger = logging.getLogger()
 logger.setLevel("ERROR")
 logging.basicConfig(
-        format="%(asctime)s: [%(filename)s:%(lineno)d] %(levelname)s: %(message)s",
-    )
-
+    format="%(asctime)s: [%(filename)s:%(lineno)d] %(levelname)s: %(message)s",
+)
 
 
 class AmqpConnector:
     """Porvides functionality to asynchronously configure an AMQP message broker.
-    
+
     Parameters
     ----------
     amqp_host: str, default = "127.0.0.1"
@@ -50,7 +49,6 @@ class AmqpConnector:
         # locks have to be created in loop
         self.connection_config_lock = None
         self.channel_config_lock = None
-        
 
     def _get_amqp_auth(self):
         return {
@@ -215,7 +213,7 @@ class AmqpConnector:
 
 class AmqpListener(AmqpConnector):
     """Porvides functionality to asynchronously listen to an AMQP message broker.
-    
+
     Parameters
     ----------
     amqp_host: str, default = "127.0.0.1"
@@ -277,7 +275,7 @@ class AmqpListener(AmqpConnector):
 
     async def bind_to_exchange(self, exchange_name="", routing_key="#"):
         """Bind the used queue to an existing exchange.
-        
+
         Parameters
         ----------
         exchange_name: str, default = ""
@@ -297,7 +295,7 @@ class AmqpListener(AmqpConnector):
         -------
         aio_pika.IncomingMessage
             Message object recieved from the queue
-        
+
         """
         queue = await self.get_queue()
         msg = None
@@ -305,16 +303,20 @@ class AmqpListener(AmqpConnector):
             msg = await queue.get(fail=False)
         return msg
 
-    def add_message_processor(self, callback: Callable[[str],Any]):
+    def add_message_processor(self, callback: Callable[[str], Any]):
         """Add a callback function that is executed every time a message is recieved."""
         if asyncio.iscoroutine(callable):
+
             async def on_message_recieved(msg):
                 async with msg.process():
                     return await callback(msg.body.decode("utf-8"))
-        else: 
+
+        else:
+
             async def on_message_recieved(msg):
                 async with msg.process():
                     return callback(msg.body.decode("utf-8"))
+
         self._on_message_recieved = on_message_recieved
 
     async def process_messages(self):
@@ -322,8 +324,6 @@ class AmqpListener(AmqpConnector):
         await queue.consume(self._on_message_recieved)
         while True:
             await asyncio.sleep(1)
-        
-
 
 
 class AmqpPublisher(AmqpConnector):
@@ -392,7 +392,7 @@ class AmqpPublisher(AmqpConnector):
     )
     async def publish(self, key: str, data) -> bool:
         """Publishes the message on the exchange set in __init__().
-        
+
         Parameters
         ----------
         key: str
@@ -413,7 +413,7 @@ class AmqpPublisher(AmqpConnector):
         exchange = await self.get_exchange()
         if self.amqp_topic_prefix.strip():  # not whitespace only
             key = f"{self.amqp_topic_prefix.strip()}.{key}"
-        logger.debug(f"publishing: topic:{key} | body:{json.dumps(data)}")
+        logger.debug(f"publishing: topic:{key} | body:{json.dumps(data, default=str)}")
         # try:
         #     key, data = await self.sanitize_message(key, data)
         # except (ValueError, KeyError, TypeError) as err:
@@ -423,6 +423,6 @@ class AmqpPublisher(AmqpConnector):
         logger.debug(self._amqp_channel)
         logger.debug(self.amqp_exchange)
         return await exchange.publish(
-            aio_pika.Message(body=json.dumps(data).encode()),
+            aio_pika.Message(body=json.dumps(data, default=str).encode()),
             routing_key=str(key),
         )
