@@ -8,8 +8,8 @@ import aio_pika
 import asyncio
 import aiormq
 
-from my_retry import retry
-from context import DoOnce
+from sognojq.my_retry import retry
+from sognojq.context import DoOnce
 
 logger = logging.getLogger()
 logger.setLevel("ERROR")
