@@ -6,7 +6,7 @@ setup(
     description="Classes for interfacing with AMQP",
     author="Florian Oppermann",
     url="https://github.com/sogno-platform/sogno-job-queue",
-    packages=["sognojq"],
+    packages=["sognojq","sognojq.my_retry"],
     package_dir={'':'python/src'},
     license="Apache-2.0 License",
     python_requires=">=3.8",
