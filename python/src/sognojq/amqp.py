@@ -300,8 +300,7 @@ class AmqpListener(AmqpConnector):
         queue = await self.get_queue()
         msg = None
         while msg is None:
-            msg = await queue.get(fail=False)
-            await asyncio.sleep(1)
+            msg = await queue.get(fail=False, timeout=1)
         return msg
 
     def add_message_processor(self, callback: Callable[[str], Any]):
