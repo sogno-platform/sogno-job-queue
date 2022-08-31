@@ -301,7 +301,7 @@ class AmqpListener(AmqpConnector):
         msg = None
         while msg is None:
             msg = await queue.get(fail=False)
-            asyncio.sleep(1)
+            await asyncio.sleep(1)
         return msg
 
     def add_message_processor(self, callback: Callable[[str], Any]):
