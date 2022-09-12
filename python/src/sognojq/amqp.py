@@ -57,6 +57,7 @@ class AmqpConnector:
         }
 
     def connection_ok(self):
+        print(f"{self._amqp_connection.is_closed = }")
         return self._amqp_connection is not None and not self._amqp_connection.is_closed
 
     @retry(
@@ -96,6 +97,7 @@ class AmqpConnector:
 
     def channel_ok(self):
         """Checks if a channel exists and is open."""
+        print(f"{self._amqp_channel.is_closed = }")
         return self._amqp_channel is not None and not self._amqp_channel.is_closed
 
     @retry(
@@ -128,7 +130,7 @@ class AmqpConnector:
             # do not overwrite channel if it can not connect because it already is connected
             if amqp_channel is not None:
                 self._amqp_channel = amqp_channel
-                await self._amqp_channel.set_qos(prefetch_count=1)
+                await self._amqp_channel.set_qos(prefetch_count=0)
             else:
                 raise ConnectionError(
                     f"could not open a channel to broker for {str(self)}."
@@ -267,7 +269,7 @@ class AmqpListener(AmqpConnector):
         if not self.queue_config_lock:
             self.queue_config_lock = DoOnce()
         await self.queue_config_lock.wait_if_locked()
-        if self.amqp_queue:
+        if self.channel_ok() and self.amqp_queue is not None:
             return self.amqp_queue
         async with self.queue_config_lock:
             self.amqp_queue = await self._create_queue(queue_name=self.amqp_queue_name)
@@ -307,7 +309,6 @@ class AmqpListener(AmqpConnector):
             Message object recieved from the queue
 
         """
-        await self.get_channel()
         queue = await self.get_queue()
         msg = None
         while msg is None:
