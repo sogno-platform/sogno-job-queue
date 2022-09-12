@@ -57,7 +57,8 @@ class AmqpConnector:
         }
 
     def connection_ok(self):
-        print(f"{self._amqp_connection.is_closed = }")
+        if self._amqp_connection is not None:
+            print(f"{self._amqp_connection.is_closed = }")
         return self._amqp_connection is not None and not self._amqp_connection.is_closed
 
     @retry(
@@ -97,7 +98,8 @@ class AmqpConnector:
 
     def channel_ok(self):
         """Checks if a channel exists and is open."""
-        print(f"{self._amqp_channel.is_closed = }")
+        if self._amqp_channel is not None:
+            print(f"{self._amqp_channel.is_closed = }")
         return self._amqp_channel is not None and not self._amqp_channel.is_closed
 
     @retry(
@@ -290,9 +292,7 @@ class AmqpListener(AmqpConnector):
         return self
 
     @retry(
-        exceptions=(
-            asyncio.exceptions.TimeoutError,
-        ),
+        exceptions=(asyncio.exceptions.TimeoutError,),
         tries=int(os.getenv("MAX_RETRIES_INTERNAL", -1)),
         delay=1,
         jitter=1,
