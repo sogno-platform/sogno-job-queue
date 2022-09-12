@@ -307,6 +307,7 @@ class AmqpListener(AmqpConnector):
             Message object recieved from the queue
 
         """
+        await self.get_channel()
         queue = await self.get_queue()
         msg = None
         while msg is None:
