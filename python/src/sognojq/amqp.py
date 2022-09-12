@@ -287,6 +287,16 @@ class AmqpListener(AmqpConnector):
         await queue.bind(exchange_name, routing_key)
         return self
 
+    @retry(
+        exceptions=(
+            asyncio.exceptions.TimeoutError,
+        ),
+        tries=int(os.getenv("MAX_RETRIES_INTERNAL", -1)),
+        delay=1,
+        jitter=1,
+        max_delay=60,
+        logger=logger,
+    )
     async def get_message(self) -> aio_pika.IncomingMessage:
         """Repeatedly request a message from the queue until one is recieved.
         Be careful to manually acknowledge the message or use message.process() as async context.
@@ -301,6 +311,8 @@ class AmqpListener(AmqpConnector):
         msg = None
         while msg is None:
             msg = await queue.get(fail=False, timeout=15)
+            if msg:
+                break
             await asyncio.sleep(1)
         return msg
 
