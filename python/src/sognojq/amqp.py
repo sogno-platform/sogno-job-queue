@@ -303,6 +303,7 @@ class AmqpListener(AmqpConnector):
             print("msg was None, trying again")
             msg = await queue.get(fail=False, timeout=1)
             await asyncio.sleep(5)
+        print("message was NOT None")
         return msg
 
     def add_message_processor(self, callback: Callable[[str], Any]):
