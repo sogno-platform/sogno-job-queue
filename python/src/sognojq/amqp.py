@@ -300,6 +300,7 @@ class AmqpListener(AmqpConnector):
         queue = await self.get_queue()
         msg = None
         while msg is None:
+            print("msg was None, trying again")
             msg = await queue.get(fail=False, timeout=1)
             await asyncio.sleep(5)
         return msg
