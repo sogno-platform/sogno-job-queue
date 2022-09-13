@@ -81,8 +81,8 @@ class AmqpConnector:
         if not self.connection_config_lock:
             self.connection_config_lock = DoOnce()
         await self.connection_config_lock.wait_if_locked()
-        if self.connection_ok():
-            return self._amqp_connection
+        # if self.connection_ok():
+        #     return self._amqp_connection
         async with self.connection_config_lock:
             amqp_connection = await aio_pika.connect_robust(
                 host=self.amqp_host,
@@ -271,8 +271,8 @@ class AmqpListener(AmqpConnector):
         if not self.queue_config_lock:
             self.queue_config_lock = DoOnce()
         await self.queue_config_lock.wait_if_locked()
-        if self.channel_ok() and self.amqp_queue is not None:
-            return self.amqp_queue
+        # if self.channel_ok() and self.amqp_queue is not None:
+        #     return self.amqp_queue
         async with self.queue_config_lock:
             self.amqp_queue = await self._create_queue(queue_name=self.amqp_queue_name)
         return self.amqp_queue
