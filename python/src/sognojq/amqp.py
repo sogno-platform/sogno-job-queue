@@ -292,7 +292,15 @@ class AmqpListener(AmqpConnector):
         return self
 
     @retry(
-        exceptions=(asyncio.exceptions.TimeoutError,),
+        exceptions=(
+            asyncio.exceptions.TimeoutError,
+            ConnectionError,
+            ConnectionRefusedError,
+            ConnectionAbortedError,
+            ConnectionResetError,
+            aiormq.exceptions.IncompatibleProtocolError,
+            asyncio.exceptions.IncompleteReadError,
+        ),
         tries=int(os.getenv("MAX_RETRIES_INTERNAL", -1)),
         delay=1,
         jitter=1,
